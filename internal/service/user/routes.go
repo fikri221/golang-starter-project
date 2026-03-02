@@ -1,6 +1,7 @@
 package user
 
 import (
+	"jwt-auth/internal/auth"
 	"jwt-auth/internal/types"
 	"jwt-auth/internal/utils"
 	"net/http"
@@ -11,11 +12,15 @@ import (
 
 type Handler struct {
 	store types.UserStore
+	jwt   *auth.JWT
 }
 
 // NewHandler creates a new user handler
-func NewHandler(store types.UserStore) *Handler {
-	return &Handler{store: store}
+func NewHandler(store types.UserStore, jwt *auth.JWT) *Handler {
+	return &Handler{
+		store: store,
+		jwt:   jwt,
+	}
 }
 
 func (h *Handler) RegisterRoutes(router *mux.Router) {
@@ -97,7 +102,13 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Here we would typically generate a JWT token
-	// For now, let's just return success
-	utils.WriteJSON(w, http.StatusOK, map[string]string{"token": ""})
+	// Generate a JWT token
+	token, err := h.jwt.GenerateToken(u.Email)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, "Error generating token")
+		return
+	}
+
+	// Return token
+	utils.WriteJSON(w, http.StatusOK, map[string]string{"token": token})
 }

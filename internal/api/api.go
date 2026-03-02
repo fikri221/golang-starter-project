@@ -2,6 +2,8 @@ package api
 
 import (
 	"database/sql"
+	"jwt-auth/internal/auth"
+	"jwt-auth/internal/config"
 	"jwt-auth/internal/service/user"
 	"log"
 	"net/http"
@@ -10,15 +12,15 @@ import (
 )
 
 type APIServer struct {
-	addr string
-	db   *sql.DB
+	db  *sql.DB
+	cfg *config.Config
 }
 
 // NewAPIServer creates a new API server
-func NewAPIServer(addr string, db *sql.DB) *APIServer {
+func NewAPIServer(db *sql.DB, cfg *config.Config) *APIServer {
 	return &APIServer{
-		addr: addr,
-		db:   db,
+		db:  db,
+		cfg: cfg,
 	}
 }
 
@@ -30,10 +32,11 @@ func (s *APIServer) Run() error {
 	subRouter := router.PathPrefix("/api/v1").Subrouter()
 
 	userStore := user.NewStore(s.db)
-	userHandler := user.NewHandler(userStore)
+	jwtService := auth.NewJWT(s.cfg)
+	userHandler := user.NewHandler(userStore, jwtService)
 	userHandler.RegisterRoutes(subRouter)
 
-	log.Println("Starting server on ", s.addr)
+	log.Println("Starting server on :", s.cfg.Port)
 
-	return http.ListenAndServe(s.addr, router)
+	return http.ListenAndServe(":"+s.cfg.Port, router)
 }
