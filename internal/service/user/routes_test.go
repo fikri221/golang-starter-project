@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"jwt-auth/internal/auth"
+	"jwt-auth/internal/config"
 	"jwt-auth/internal/types"
 	"net/http"
 	"net/http/httptest"
@@ -13,9 +15,14 @@ import (
 )
 
 func TestUserServiceHandler(t *testing.T) {
-	// TODO: do mock test for user service handler
+	// Mock test for user service handler
 	userStore := &mockUserStore{}
-	handler := NewHandler(userStore)
+	// Mock JWT service for testing
+	jwtService := auth.NewJWT(&config.Config{
+		JWTSecret:     "not-secret",
+		JWTExpiration: 3600,
+	})
+	handler := NewHandler(userStore, jwtService)
 
 	t.Run("Should fail if the user payload is invalid", func(t *testing.T) {
 		payload := types.RegisterUserRequest{
