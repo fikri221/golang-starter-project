@@ -16,7 +16,7 @@ func main() {
 	cfg := config.LoadConfig()
 
 	// Initialize database
-	database, err := db.NewMySQLStorage(cfg.DBUser, cfg.DBPasswd, cfg.DBHost, cfg.DBPort, cfg.DBName)
+	database, err := db.NewMySQLStorage(cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName)
 	if err != nil {
 		log.Fatal(err)
 	}
